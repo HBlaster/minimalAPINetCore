@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.Extensions.Options;
 using MinimalApiMovies.Entidades;
 
@@ -29,7 +30,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
+app.UseCors();
+
+app.MapGet("/", [EnableCors(policyName:"libre")]() => "Hello World!");
 
 app.MapGet("/generos", () =>
 {
