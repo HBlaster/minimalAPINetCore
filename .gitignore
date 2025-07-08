@@ -1,0 +1,45 @@
+# Carpetas temporales de Visual Studio
+.vs/
+*.user
+*.suo
+
+# Archivos de compilación
+bin/
+obj/
+
+# Archivos generados por EF Core (opcional si no quieres subir migraciones)
+Migrations/
+
+# Archivos de logs
+*.log
+
+# Archivos sensibles o de entorno
+*.env
+*.db
+
+# Archivos de configuración locales
+launchSettings.json
+# Carpetas temporales de Visual Studio
+.vs/
+*.user
+*.suo
+
+# Archivos de compilación
+bin/
+obj/
+
+# Archivos generados por EF Core (opcional si no quieres subir migraciones)
+Migrations/
+
+# Archivos de logs
+*.log
+
+# Archivos sensibles o de entorno
+*.env
+*.db
+
+# Archivos de configuración locales
+launchSettings.json
+
+.vscode/
+.idea/
