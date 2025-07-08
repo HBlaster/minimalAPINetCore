@@ -5,14 +5,6 @@ using MinimalApiMovies.Entidades;
 var builder = WebApplication.CreateBuilder(args);
 var origenesPermitidos = builder.Configuration.GetValue<string>("origenesPermitidos")!;
 
-//builder.Services.AddCors( options => 
-//    options.AddDefaultPolicy(
-//        config => {
-//            config.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-//        }
-//    )
-//);
-
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -28,11 +20,21 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddOutputCache();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-app.UseCors();
+//if (builder.Environment.IsDevelopment()) {
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
 
-app.MapGet("/", [EnableCors(policyName:"libre")]() => "Hello World!");
+app.UseCors();
+app.UseOutputCache();
+
+app.MapGet("/", [EnableCors(policyName: "libre")] () => "Hello World!");
 
 app.MapGet("/generos", () =>
 {
@@ -46,6 +48,6 @@ app.MapGet("/generos", () =>
 
     return generos;
 
-});
+}).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(15)));
 
 app.Run();
