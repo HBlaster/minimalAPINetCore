@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Cors;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MinimalApiMovies;
 using MinimalApiMovies.Entidades;
 
 var builder = WebApplication.CreateBuilder(args);
 var origenesPermitidos = builder.Configuration.GetValue<string>("origenesPermitidos")!;
 
+// Add services to the container.
+builder.Services.AddDbContext<AplicationDbContext>(options => options.UseSqlServer("name=DefaultConnection"));
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -30,6 +34,9 @@ var app = builder.Build();
 //    app.UseSwagger();
 //    app.UseSwaggerUI();
 //}
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors();
 app.UseOutputCache();
