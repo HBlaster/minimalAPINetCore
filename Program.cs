@@ -74,4 +74,29 @@ app.MapPost("/generos", async (Genero genero, IRepositorioGenero repositorio,
     return Results.Created($"/generos/{id}", genero);
 });
 
+app.MapPut("/generos/{id:int}", async(int id, Genero genero, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore) => {
+
+    var exists = await repositorio.exists(id);
+    if (!exists) {
+        return Results.NotFound();
+    }
+
+    await repositorio.Actualizar(genero);
+    await outputCacheStore.EvictByTagAsync("generos-get", default);
+    return Results.NoContent();
+
+});
+
+app.MapDelete("/generos/{id:int}", async (int id, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore) => {
+
+    var exists = await repositorio.exists(id);
+    if (!exists) {
+        return Results.NotFound();
+    }
+
+    await repositorio.Eliminar(id);
+    await outputCacheStore.EvictByTagAsync("generos-get", default);
+    return Results.NoContent();
+});
+
 app.Run();
