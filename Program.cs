@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MinimalApiMovies;
@@ -50,7 +51,7 @@ app.MapGet("/generos", async (IRepositorioGenero repositorio) =>
 {
     return await repositorio.GetGeneros();
 
-}).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(15)));
+}).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("generos-get"));
 
 app.MapGet("/generos/{id:int}", async (IRepositorioGenero repositorio, int id) => { 
     var genero = await repositorio.GetGenero(id);
@@ -61,13 +62,15 @@ app.MapGet("/generos/{id:int}", async (IRepositorioGenero repositorio, int id) =
     return Results.Ok(genero);
 });
 
-app.MapPost("/generos", async (Genero genero, IRepositorioGenero repositorio) =>
+app.MapPost("/generos", async (Genero genero, IRepositorioGenero repositorio,
+    IOutputCacheStore outputCacheStore) =>
 {
     if (string.IsNullOrWhiteSpace(genero.Nombre))
     {
         return Results.BadRequest("El nombre del género es obligatorio.");
     }
     var id = await repositorio.Crear(genero);
+    await outputCacheStore.EvictByTagAsync("generos-get", default);
     return Results.Created($"/generos/{id}", genero);
 });
 
