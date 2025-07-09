@@ -35,6 +35,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRepositorioGenero, RepositorioGeneros>();
 
+builder.Services.AddAutoMapper(typeof(Program));
+
 var app = builder.Build();
 
 //if (builder.Environment.IsDevelopment()) {
