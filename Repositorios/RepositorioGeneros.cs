@@ -1,0 +1,20 @@
+﻿using MinimalApiMovies.Entidades;
+
+namespace MinimalApiMovies.Repositorios
+{
+    public class RepositorioGeneros : IRepositorioGenero
+    {
+        private readonly AplicationDbContext _context;
+
+        public RepositorioGeneros(AplicationDbContext context)
+        {
+            _context = context;
+        }
+        public async Task<int> Crear(Genero genero)
+        {
+            _context.Generos.Add(genero);
+            await _context.SaveChangesAsync();
+            return genero.Id;
+        }
+    }
+}

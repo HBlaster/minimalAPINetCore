@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MinimalApiMovies;
 using MinimalApiMovies.Entidades;
+using MinimalApiMovies.Repositorios;
 
 var builder = WebApplication.CreateBuilder(args);
 var origenesPermitidos = builder.Configuration.GetValue<string>("origenesPermitidos")!;
@@ -27,6 +28,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddOutputCache();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IRepositorioGenero, RepositorioGeneros>();
 
 var app = builder.Build();
 
@@ -56,5 +59,15 @@ app.MapGet("/generos", () =>
     return generos;
 
 }).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(15)));
+
+app.MapPost("/generos", async (Genero genero, IRepositorioGenero repositorio) =>
+{
+    if (string.IsNullOrWhiteSpace(genero.Nombre))
+    {
+        return Results.BadRequest("El nombre del género es obligatorio.");
+    }
+    var id = await repositorio.Crear(genero);
+    return Results.Created($"/generos/{id}", genero);
+});
 
 app.Run();
