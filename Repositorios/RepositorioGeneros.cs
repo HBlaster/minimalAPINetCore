@@ -1,4 +1,5 @@
-﻿using MinimalApiMovies.Entidades;
+﻿using Microsoft.EntityFrameworkCore;
+using MinimalApiMovies.Entidades;
 
 namespace MinimalApiMovies.Repositorios
 {
@@ -15,6 +16,16 @@ namespace MinimalApiMovies.Repositorios
             _context.Generos.Add(genero);
             await _context.SaveChangesAsync();
             return genero.Id;
+        }
+
+        public async Task<Genero?> GetGenero(int id)
+        {
+            return await _context.Generos.FirstOrDefaultAsync(g => g.Id == id);
+        }
+
+        public async Task<List<Genero>> GetGeneros()
+        {
+            return await _context.Generos.ToListAsync();
         }
     }
 }
