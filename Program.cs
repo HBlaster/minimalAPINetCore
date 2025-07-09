@@ -55,5 +55,6 @@ app.UseOutputCache();
 app.MapGet("/", [EnableCors(policyName: "libre")] () => "Hello World!");
 
 app.MapGroup("/generos").MapGeneros();
+app.MapGroup("/actores").MapActores();
 
 app.Run();
