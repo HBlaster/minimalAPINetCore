@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MinimalApiMovies;
 using MinimalApiMovies.Entidades;
+using MinimalApiMovies.Migrations;
 using MinimalApiMovies.Repositorios;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,56 +49,69 @@ app.UseOutputCache();
 
 app.MapGet("/", [EnableCors(policyName: "libre")] () => "Hello World!");
 
-app.MapGet("/generos", async (IRepositorioGenero repositorio) =>
+var endpointsGeneros = app.MapGroup("/generos");
+
+endpointsGeneros.MapGet("/", obtenerGeneros)
+    .CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("generos-get"));
+
+endpointsGeneros.MapGet("/{id:int}", obtenerGeneroId);
+
+endpointsGeneros.MapPost("/", crearGenero);
+
+endpointsGeneros.MapPut("/{id:int}", actualizarGenero);
+
+endpointsGeneros.MapDelete("/{id:int}", eliminarGenero);
+
+app.Run();
+
+static async Task<Ok<List<Genero>>> obtenerGeneros(IRepositorioGenero repositorio)
 {
-    return await repositorio.GetGeneros();
+    var generos = await repositorio.GetGeneros();
+    return TypedResults.Ok(generos);
+}
 
-}).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("generos-get"));
-
-app.MapGet("/generos/{id:int}", async (IRepositorioGenero repositorio, int id) => { 
+static async Task<Results<Ok<Genero>, NotFound>> obtenerGeneroId(IRepositorioGenero repositorio, int id)
+{
     var genero = await repositorio.GetGenero(id);
     if (genero == null)
     {
-        return Results.NotFound();
+        return TypedResults.NotFound();
     }
-    return Results.Ok(genero);
-});
+    return TypedResults.Ok(genero);
+}
 
-app.MapPost("/generos", async (Genero genero, IRepositorioGenero repositorio,
-    IOutputCacheStore outputCacheStore) =>
+static async Task<Created<Genero>> crearGenero(Genero genero, IRepositorioGenero repositorio,
+    IOutputCacheStore outputCacheStore)
 {
-    if (string.IsNullOrWhiteSpace(genero.Nombre))
-    {
-        return Results.BadRequest("El nombre del género es obligatorio.");
-    }
     var id = await repositorio.Crear(genero);
     await outputCacheStore.EvictByTagAsync("generos-get", default);
-    return Results.Created($"/generos/{id}", genero);
-});
+    return TypedResults.Created($"/generos/{id}", genero);
+}
 
-app.MapPut("/generos/{id:int}", async(int id, Genero genero, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore) => {
+static async Task<Results<NoContent, NotFound>> actualizarGenero(int id, Genero genero, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore)
+{
 
     var exists = await repositorio.exists(id);
-    if (!exists) {
-        return Results.NotFound();
+    if (!exists)
+    {
+        return TypedResults.NotFound();
     }
 
     await repositorio.Actualizar(genero);
     await outputCacheStore.EvictByTagAsync("generos-get", default);
-    return Results.NoContent();
+    return TypedResults.NoContent();
+}
 
-});
-
-app.MapDelete("/generos/{id:int}", async (int id, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore) => {
+static async Task<Results<NotFound, NoContent>> eliminarGenero(int id, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore)
+{
 
     var exists = await repositorio.exists(id);
-    if (!exists) {
-        return Results.NotFound();
+    if (!exists)
+    {
+        return TypedResults.NotFound();
     }
 
     await repositorio.Eliminar(id);
     await outputCacheStore.EvictByTagAsync("generos-get", default);
-    return Results.NoContent();
-});
-
-app.Run();
+    return TypedResults.NoContent();
+}
