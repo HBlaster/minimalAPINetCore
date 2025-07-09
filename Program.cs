@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MinimalApiMovies;
+using MinimalApiMovies.Endpoints;
 using MinimalApiMovies.Entidades;
 using MinimalApiMovies.Migrations;
 using MinimalApiMovies.Repositorios;
@@ -47,71 +48,9 @@ app.UseSwaggerUI();
 app.UseCors();
 app.UseOutputCache();
 
+//Endpoints
 app.MapGet("/", [EnableCors(policyName: "libre")] () => "Hello World!");
 
-var endpointsGeneros = app.MapGroup("/generos");
-
-endpointsGeneros.MapGet("/", obtenerGeneros)
-    .CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("generos-get"));
-
-endpointsGeneros.MapGet("/{id:int}", obtenerGeneroId);
-
-endpointsGeneros.MapPost("/", crearGenero);
-
-endpointsGeneros.MapPut("/{id:int}", actualizarGenero);
-
-endpointsGeneros.MapDelete("/{id:int}", eliminarGenero);
+app.MapGroup("/generos").MapGeneros();
 
 app.Run();
-
-static async Task<Ok<List<Genero>>> obtenerGeneros(IRepositorioGenero repositorio)
-{
-    var generos = await repositorio.GetGeneros();
-    return TypedResults.Ok(generos);
-}
-
-static async Task<Results<Ok<Genero>, NotFound>> obtenerGeneroId(IRepositorioGenero repositorio, int id)
-{
-    var genero = await repositorio.GetGenero(id);
-    if (genero == null)
-    {
-        return TypedResults.NotFound();
-    }
-    return TypedResults.Ok(genero);
-}
-
-static async Task<Created<Genero>> crearGenero(Genero genero, IRepositorioGenero repositorio,
-    IOutputCacheStore outputCacheStore)
-{
-    var id = await repositorio.Crear(genero);
-    await outputCacheStore.EvictByTagAsync("generos-get", default);
-    return TypedResults.Created($"/generos/{id}", genero);
-}
-
-static async Task<Results<NoContent, NotFound>> actualizarGenero(int id, Genero genero, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore)
-{
-
-    var exists = await repositorio.exists(id);
-    if (!exists)
-    {
-        return TypedResults.NotFound();
-    }
-
-    await repositorio.Actualizar(genero);
-    await outputCacheStore.EvictByTagAsync("generos-get", default);
-    return TypedResults.NoContent();
-}
-
-static async Task<Results<NotFound, NoContent>> eliminarGenero(int id, IRepositorioGenero repositorio, IOutputCacheStore outputCacheStore)
-{
-
-    var exists = await repositorio.exists(id);
-    if (!exists)
-    {
-        return TypedResults.NotFound();
-    }
-
-    await repositorio.Eliminar(id);
-    await outputCacheStore.EvictByTagAsync("generos-get", default);
-    return TypedResults.NoContent();
-}
