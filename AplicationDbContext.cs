@@ -13,8 +13,11 @@ namespace MinimalApiMovies
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Genero>().Property(g => g.Nombre).HasMaxLength(50);
+            modelBuilder.Entity<Actor>().Property(g => g.Nombre).HasMaxLength(150);
+            modelBuilder.Entity<Actor>().Property(g => g.Foto).IsUnicode();
         }
 
         public DbSet<Genero> Generos { get; set; }
+        public DbSet<Actor> Actores { get; set; }
     }
 }
