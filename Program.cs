@@ -8,6 +8,7 @@ using MinimalApiMovies.Endpoints;
 using MinimalApiMovies.Entidades;
 using MinimalApiMovies.Migrations;
 using MinimalApiMovies.Repositorios;
+using MinimalApiMovies.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
 var origenesPermitidos = builder.Configuration.GetValue<string>("origenesPermitidos")!;
@@ -35,6 +36,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRepositorioGenero, RepositorioGeneros>();
 builder.Services.AddScoped<IRepositorioActores, RepositorioActores>();
+builder.Services.AddScoped<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -47,6 +50,7 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseStaticFiles();
 
 app.UseCors();
 app.UseOutputCache();
