@@ -43,6 +43,11 @@ namespace MinimalApiMovies.Repositorios
             await _context.Actores.Where(x => x.Id == id).ExecuteDeleteAsync();
         }
 
+        public async Task<List<Actor>> ObtenerPorNombre(string Nombre) {
+            return await _context.Actores
+                .Where(x => x.Nombre.Contains(Nombre)).OrderBy(x =>x.Nombre).ToListAsync();
+        }
+
     }
 }
 

@@ -17,6 +17,7 @@ namespace MinimalApiMovies.Endpoints
             group.MapPost("/", Crear).DisableAntiforgery();
             group.MapGet("/", ObtenerTodos)
                 .CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("actores-get"));
+            group.MapGet("obtenerPorNombre/{nombre}", ObtenerPorNombre);
             group.MapGet("/${id:int}", ObtenerPorId);
 
             return group;
@@ -49,6 +50,17 @@ namespace MinimalApiMovies.Endpoints
             return TypedResults.Ok(actoresDto);
 
         }
+
+        static async Task<Ok<List<ActorDTO>>> ObtenerPorNombre(string nombre,IRepositorioActores repositorio, IMapper mapper)
+        {
+
+            var actores = await repositorio.ObtenerPorNombre(nombre);
+            var actoresDto = mapper.Map<List<ActorDTO>>(actores);
+            return TypedResults.Ok(actoresDto);
+
+        }
+
+
 
         static async Task<Results<Ok<ActorDTO>, NotFound>> ObtenerPorId(int id, IRepositorioActores repositorio, IMapper mapper)
         {
