@@ -1,19 +1,25 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MinimalApiMovies.DTOs;
 using MinimalApiMovies.Entidades;
+using MinimalApiMovies.Utilidades;
 
 namespace MinimalApiMovies.Repositorios
 {
     public class RepositorioActores : IRepositorioActores
     {
         private readonly AplicationDbContext _context;
-        public RepositorioActores(AplicationDbContext context)
+        private readonly HttpContext httpContext;
+
+        public RepositorioActores(AplicationDbContext context, IHttpContextAccessor httpContextAccesor)
         {
             this._context = context;
-
+            httpContext = httpContextAccesor.HttpContext!;
         }
-        public async Task<List<Actor>> ObtenerTodos()
+        public async Task<List<Actor>> ObtenerTodos(PaginacionDTO paginacionDTO)
         {
-            return await _context.Actores.OrderBy(x => x.Nombre).ToListAsync();
+            var queryable = _context.Actores.AsQueryable();
+            await httpContext.InsertarParametrosPaginacionEnCabecera(queryable);
+            return await queryable.OrderBy(x => x.Nombre).Paginar(paginacionDTO).ToListAsync();
         }
         public async Task<Actor?> ObtenerPorId(int id)
         {
@@ -43,9 +49,10 @@ namespace MinimalApiMovies.Repositorios
             await _context.Actores.Where(x => x.Id == id).ExecuteDeleteAsync();
         }
 
-        public async Task<List<Actor>> ObtenerPorNombre(string Nombre) {
+        public async Task<List<Actor>> ObtenerPorNombre(string Nombre)
+        {
             return await _context.Actores
-                .Where(x => x.Nombre.Contains(Nombre)).OrderBy(x =>x.Nombre).ToListAsync();
+                .Where(x => x.Nombre.Contains(Nombre)).OrderBy(x => x.Nombre).ToListAsync();
         }
 
     }

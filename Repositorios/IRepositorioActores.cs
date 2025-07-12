@@ -1,4 +1,5 @@
-﻿using MinimalApiMovies.Entidades;
+﻿using MinimalApiMovies.DTOs;
+using MinimalApiMovies.Entidades;
 
 namespace MinimalApiMovies.Repositorios
 {
@@ -10,6 +11,6 @@ namespace MinimalApiMovies.Repositorios
         Task<bool> Existe(int id);
         Task<Actor?> ObtenerPorId(int id);
         Task<List<Actor>> ObtenerPorNombre(string Nombre);
-        Task<List<Actor>> ObtenerTodos();
+        Task<List<Actor>> ObtenerTodos(PaginacionDTO paginacionDTO);
     }
 }
