@@ -20,6 +20,7 @@ namespace MinimalApiMovies.Endpoints
             group.MapGet("obtenerPorNombre/{nombre}", ObtenerPorNombre);
             group.MapGet("/${id:int}", ObtenerPorId);
             group.MapPut("/{id:int}", Actualizar).DisableAntiforgery();
+            group.MapDelete("/{id:int}", Borrar);
 
             return group;
         }
@@ -100,5 +101,18 @@ namespace MinimalApiMovies.Endpoints
             return TypedResults.NoContent();
         }
 
+        static async Task<Results<NoContent, NotFound>> Borrar(int id, IRepositorioActores repositorio, IOutputCacheStore outputCacheStore, IAlmacenadorArchivos almacenadorArchivos)
+        {
+
+            var actorDB = await repositorio.ObtenerPorId(id);
+            if (actorDB is null)
+            {
+                return TypedResults.NotFound();
+            }
+            await repositorio.Eliminar(id);
+            await almacenadorArchivos.Borrar(actorDB.Foto, contenedor);
+            await outputCacheStore.EvictByTagAsync("actores-get", default);
+            return TypedResults.NoContent();
+        }
     }
 }
