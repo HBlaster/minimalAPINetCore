@@ -37,6 +37,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IRepositorioGenero, RepositorioGeneros>();
 builder.Services.AddScoped<IRepositorioActores, RepositorioActores>();
 builder.Services.AddScoped<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
+builder.Services.AddScoped<IRepositorioPeliculas, RepositorioPeliculas>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAutoMapper(typeof(Program));
