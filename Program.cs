@@ -61,5 +61,6 @@ app.MapGet("/", [EnableCors(policyName: "libre")] () => "Hello World!");
 
 app.MapGroup("/generos").MapGeneros();
 app.MapGroup("/actores").MapActores();
+app.MapGroup("/peliculas").MapPeliculas();
 
 app.Run();

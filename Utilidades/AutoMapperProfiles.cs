@@ -18,6 +18,12 @@ namespace MinimalApiMovies.Utilidades
                 .ForMember(x => x.Foto, opciones => opciones.Ignore());
             CreateMap<Actor, ActorDTO>();
 
+            //Peliculas
+            CreateMap<crearPeliculaDTO, Pelicula>()
+                .ForMember(x => x.Poster, opciones => opciones.Ignore());
+            CreateMap<Pelicula, PeliculaDTO>();
+
+
 
 
         }
