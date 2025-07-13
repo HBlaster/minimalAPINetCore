@@ -15,10 +15,14 @@ namespace MinimalApiMovies.Endpoints
         public static RouteGroupBuilder MapPeliculas(this RouteGroupBuilder group)
         {
             group.MapPost("/", Crear).DisableAntiforgery();
+            group.MapGet("/", Obtener).CacheOutput(c => c.Expire(TimeSpan.FromSeconds(60)).Tag("peliculas-get"));
+            group.MapGet("/{id:int}", ObtenerPorId);
+            group.MapPut("/{id:int}", Actualizar).DisableAntiforgery();
+            group.MapDelete("/{id:int}", Borrar);
             return group;
         }
 
-        static async Task<Created<PeliculaDTO>> Crear([FromForm] crearPeliculaDTO crearPeliculaDTO, IRepositorioPeliculas repositorio,
+        static async Task<Created<PeliculaDTO>> Crear([FromForm] CrearPeliculaDTO crearPeliculaDTO, IRepositorioPeliculas repositorio,
             IOutputCacheStore outputCacheStore, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos)
         {
             var pelicula = mapper.Map<Pelicula>(crearPeliculaDTO);
@@ -31,6 +35,68 @@ namespace MinimalApiMovies.Endpoints
             await outputCacheStore.EvictByTagAsync("peliculas-get", default);
             var peliculaDTO = mapper.Map<PeliculaDTO>(pelicula);
             return TypedResults.Created($"/peliculas/{id}", peliculaDTO);
+
+        }
+
+        static async Task<Ok<List<PeliculaDTO>>> Obtener(IRepositorioPeliculas repositorio, IMapper mapper,
+            int pagina = 1, int recordsPorPagina = 10)
+        {
+
+            var paginacionDTO = new PaginacionDTO
+            {
+                Pagina = pagina,
+                RecordsPorPagina = recordsPorPagina
+            };
+            var peliculas = await repositorio.ObtenerTodos(paginacionDTO);
+            var peliculasDto = mapper.Map<List<PeliculaDTO>>(peliculas);
+            return TypedResults.Ok(peliculasDto);
+        }
+
+        static async Task<Results<Ok<PeliculaDTO>, NotFound>> ObtenerPorId(int id, IRepositorioPeliculas repositorio, IMapper mapper)
+        {
+            var pelicula = await repositorio.ObtenerPorId(id);
+            if (pelicula == null)
+            {
+                return TypedResults.NotFound();
+            }
+            var peliculaDto = mapper.Map<PeliculaDTO>(pelicula);
+            return TypedResults.Ok(peliculaDto);
+        }
+
+        static async Task<Results<NoContent, NotFound>> Actualizar(int id, [FromForm] CrearPeliculaDTO crearPeliculaDTO, IRepositorioPeliculas repositorio,
+            IAlmacenadorArchivos almacenadorArchivos, IOutputCacheStore outputCacheStore, IMapper mapper)
+        {
+
+            var peliculaDB = await repositorio.ObtenerPorId(id);
+            if (peliculaDB == null)
+            {
+                return TypedResults.NotFound();
+            }
+            var peliculaActualizar = mapper.Map<Pelicula>(crearPeliculaDTO);
+            peliculaActualizar.Id = id;
+            peliculaActualizar.Poster = peliculaDB.Poster;
+            if (crearPeliculaDTO.Poster is not null)
+            {
+                peliculaActualizar.Poster = await almacenadorArchivos.Editar(peliculaDB.Poster, contenedor, crearPeliculaDTO.Poster);
+            }
+            await repositorio.Actualizar(peliculaActualizar);
+            await outputCacheStore.EvictByTagAsync("peliculas-get", default);
+            return TypedResults.NoContent();
+        }
+
+        static async Task<Results<NoContent, NotFound>> Borrar(int id, IRepositorioPeliculas repositorio, IOutputCacheStore outputCacheStore, IAlmacenadorArchivos almacenadorArchivos)
+        {
+
+            var peliculaDB = await repositorio.ObtenerPorId(id);
+            if (peliculaDB is null)
+            {
+                return TypedResults.NotFound();
+            }
+            await repositorio.Eliminar(id);
+            await almacenadorArchivos.Borrar(peliculaDB.Poster, contenedor);
+            await outputCacheStore.EvictByTagAsync("peliculas-get", default);
+            return TypedResults.NoContent();
+
 
         }
     }

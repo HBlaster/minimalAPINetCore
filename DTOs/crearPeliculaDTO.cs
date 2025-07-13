@@ -1,6 +1,6 @@
 ﻿namespace MinimalApiMovies.DTOs
 {
-    public class crearPeliculaDTO
+    public class CrearPeliculaDTO
     {
         public string Titulo { get; set; } = null!;
         public bool EnCines { get; set; }
