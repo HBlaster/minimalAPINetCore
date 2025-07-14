@@ -30,7 +30,7 @@ namespace MinimalApiMovies.Repositorios
         {
             return await context.Peliculas.Include(p => p.Comentarios)
                 .Include(p => p.GenerosPeliculas).ThenInclude(gp=> gp.Genero)
-                .Include(p=>p.ActorPeliculas).ThenInclude(ap => ap.Actor)
+                .Include(p=>p.ActorPeliculas.OrderBy(a => a.Orden)).ThenInclude(ap => ap.Actor)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
