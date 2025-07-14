@@ -21,6 +21,8 @@ namespace MinimalApiMovies
 
             modelBuilder.Entity<GeneroPelicula>()
                 .HasKey(gp => new { gp.GeneroId, gp.PeliculaId });
+
+            modelBuilder.Entity<ActorPelicula>().HasKey(ap => new { ap.ActorId, ap.PeliculaId });
         }
 
         public DbSet<Genero> Generos { get; set; }
@@ -28,5 +30,6 @@ namespace MinimalApiMovies
         public DbSet<Pelicula> Peliculas { get; set; }
         public DbSet<Comentario> Comentarios { get; set; }
         public DbSet<GeneroPelicula> GenerosPeliculas { get; set; }
+        public DbSet<ActorPelicula> ActoresPeliculas { get; set; }
     }
 }

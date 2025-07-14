@@ -19,6 +19,7 @@ namespace MinimalApiMovies.Endpoints
             group.MapGet("/{id:int}", ObtenerPorId);
             group.MapPut("/{id:int}", Actualizar).DisableAntiforgery();
             group.MapDelete("/{id:int}", Borrar);
+            group.MapPost("/{id:int}/asignargeneros", AsignarGeneros);
             return group;
         }
 
@@ -84,7 +85,8 @@ namespace MinimalApiMovies.Endpoints
             return TypedResults.NoContent();
         }
 
-        static async Task<Results<NoContent, NotFound>> Borrar(int id, IRepositorioPeliculas repositorio, IOutputCacheStore outputCacheStore, IAlmacenadorArchivos almacenadorArchivos)
+        static async Task<Results<NoContent, NotFound>> Borrar(int id, IRepositorioPeliculas repositorio, IOutputCacheStore outputCacheStore,
+            IAlmacenadorArchivos almacenadorArchivos)
         {
 
             var peliculaDB = await repositorio.ObtenerPorId(id);
@@ -97,6 +99,31 @@ namespace MinimalApiMovies.Endpoints
             await outputCacheStore.EvictByTagAsync("peliculas-get", default);
             return TypedResults.NoContent();
 
+
+        }
+
+        static async Task<Results<NoContent, NotFound, BadRequest<string>>> AsignarGeneros(int id, List<int> generosIds, IRepositorioPeliculas repositorioPeliculas,
+            IRepositorioGenero repositorioGenero)
+        {
+
+            if (!await repositorioPeliculas.Existe(id))
+            {
+                return TypedResults.NotFound();
+            }
+
+            var generosExistentes = new List<int>();
+            if (generosIds.Count != 0)
+            {
+                generosExistentes = await repositorioGenero.Existen(generosIds);
+            }
+            if (generosExistentes.Count != generosIds.Count)
+            {
+                var generosNoExistentes = generosIds.Except(generosExistentes);
+                return TypedResults.BadRequest($"Los siguientes géneros no existen: {string.Join(", ", generosNoExistentes)}");
+            }
+
+            await repositorioPeliculas.AsignarGeneros(id, generosIds);
+            return TypedResults.NoContent();
 
         }
     }
