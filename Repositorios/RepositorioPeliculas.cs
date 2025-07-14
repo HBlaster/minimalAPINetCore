@@ -29,6 +29,8 @@ namespace MinimalApiMovies.Repositorios
         public async Task<Pelicula?> ObtenerPorId(int id)
         {
             return await context.Peliculas.Include(p => p.Comentarios)
+                .Include(p => p.GenerosPeliculas).ThenInclude(gp=> gp.Genero)
+                .Include(p=>p.ActorPeliculas).ThenInclude(ap => ap.Actor)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
@@ -70,5 +72,22 @@ namespace MinimalApiMovies.Repositorios
 
             await context.SaveChangesAsync();
         }
+
+        public async Task AsignarActores(int id, List<ActorPelicula>actores) {
+
+            for (int i=1; i<actores.Count; i++) {
+                actores[i-1].Orden = i;
+            }
+            var pelicula = await context.Peliculas.Include(p => p.ActorPeliculas)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (pelicula == null) {
+                throw new Exception($"No se encontró la película con ID {id}");
+            }
+
+            pelicula.ActorPeliculas = mapper.Map(actores, pelicula.ActorPeliculas);
+            await context.SaveChangesAsync();
+
+        }
+
     }
 }

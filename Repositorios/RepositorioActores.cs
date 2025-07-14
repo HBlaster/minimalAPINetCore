@@ -55,6 +55,13 @@ namespace MinimalApiMovies.Repositorios
                 .Where(x => x.Nombre.Contains(Nombre)).OrderBy(x => x.Nombre).ToListAsync();
         }
 
+        public async Task<List<int>> Existen(List<int>ids) {
+            return await _context.Actores
+                .Where(x => ids.Contains(x.Id))
+                .Select(x => x.Id)
+                .ToListAsync();
+        }
+
     }
 }
 

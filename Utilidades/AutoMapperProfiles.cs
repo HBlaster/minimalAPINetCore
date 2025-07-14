@@ -21,11 +21,26 @@ namespace MinimalApiMovies.Utilidades
             //Peliculas
             CreateMap<CrearPeliculaDTO, Pelicula>()
                 .ForMember(x => x.Poster, opciones => opciones.Ignore());
-            CreateMap<Pelicula, PeliculaDTO>();
+            CreateMap<Pelicula, PeliculaDTO>()
+                .ForMember(p => p.Generos,
+                entidad => entidad.MapFrom(p =>
+                p.GenerosPeliculas.Select(gp =>
+                new GeneroDTO { Id = gp.GeneroId, Nombre = gp.Genero.Nombre })))
+                .ForMember(p => p.Actores, entidad => entidad.MapFrom(p =>
+                p.ActorPeliculas.Select(ap =>
+                new ActorPeliculaDTO
+                {
+                    Id = ap.ActorId,
+                    Nombre = ap.Actor.Nombre,
+                    Personaje = ap.Personaje
+                })));
 
             //Comentarios
             CreateMap<CrearComentarioDTO, Comentario>();
             CreateMap<Comentario, ComentarioDTO>();
+
+            //ActorPelicula
+            CreateMap<AsignarActorPeliculaDTO, ActorPelicula>();
 
 
 
