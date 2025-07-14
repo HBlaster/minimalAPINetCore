@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using MinimalApiMovies.DTOs;
 using MinimalApiMovies.Entidades;
 using MinimalApiMovies.Utilidades;
@@ -8,11 +9,13 @@ namespace MinimalApiMovies.Repositorios
     public class RepositorioPeliculas : IRepositorioPeliculas
     {
         private readonly AplicationDbContext context;
+        private readonly IMapper mapper;
         public HttpContext HttpContext;
 
-        public RepositorioPeliculas(AplicationDbContext _context, IHttpContextAccessor httpContextAccessor)
+        public RepositorioPeliculas(AplicationDbContext _context, IHttpContextAccessor httpContextAccessor, IMapper mapper)
         {
             context = _context;
+            this.mapper = mapper;
             HttpContext = httpContextAccessor.HttpContext!;
         }
 
@@ -25,7 +28,9 @@ namespace MinimalApiMovies.Repositorios
 
         public async Task<Pelicula?> ObtenerPorId(int id)
         {
-            return await context.Peliculas.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            return await context.Peliculas.Include(p => p.Comentarios)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
         public async Task<int> Crear(Pelicula pelicula)
         {
@@ -48,6 +53,22 @@ namespace MinimalApiMovies.Repositorios
         public async Task<bool> Existe(int id)
         {
             return await context.Peliculas.AnyAsync(p => p.Id == id);
+        }
+
+        public async Task AsignarGeneros(int id, List<int> generosIds)
+        {
+
+            var pelicula = await context.Peliculas.Include(p => p.GenerosPeliculas).FirstOrDefaultAsync(x => x.Id == id);
+            if (pelicula == null)
+            {
+                throw new Exception($"No se encontró la película con ID {id}");
+            }
+
+            var generosPelicullas = generosIds.Select(generoId => new GeneroPelicula { GeneroId = generoId });
+
+            pelicula.GenerosPeliculas = mapper.Map(generosPelicullas, pelicula.GenerosPeliculas);
+
+            await context.SaveChangesAsync();
         }
     }
 }

@@ -48,6 +48,14 @@ namespace MinimalApiMovies.Repositorios
 
         }
 
+        public async Task<List<int>> Existen(List<int> ids)
+        {
+
+            return await _context.Generos
+                .Where(g => ids.Contains(g.Id))
+                .Select(g => g.Id)
+                .ToListAsync();
+        }
 
     }
 }

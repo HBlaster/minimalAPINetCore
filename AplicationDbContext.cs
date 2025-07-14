@@ -18,11 +18,15 @@ namespace MinimalApiMovies
 
             modelBuilder.Entity<Pelicula>().Property(p => p.Titulo).HasMaxLength(150);
             modelBuilder.Entity<Pelicula>().Property(p => p.Poster).IsUnicode();
+
+            modelBuilder.Entity<GeneroPelicula>()
+                .HasKey(gp => new { gp.GeneroId, gp.PeliculaId });
         }
 
         public DbSet<Genero> Generos { get; set; }
         public DbSet<Actor> Actores { get; set; }
         public DbSet<Pelicula> Peliculas { get; set; }
         public DbSet<Comentario> Comentarios { get; set; }
+        public DbSet<GeneroPelicula> GenerosPeliculas { get; set; }
     }
 }

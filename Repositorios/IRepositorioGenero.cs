@@ -10,7 +10,6 @@ namespace MinimalApiMovies.Repositorios
         Task<bool> exists(int id);
         Task Actualizar(Genero genero);
         Task Eliminar(int id);
-
-
+        Task<List<int>> Existen(List<int> ids);
     }
 }
