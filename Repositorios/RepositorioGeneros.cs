@@ -22,6 +22,10 @@ namespace MinimalApiMovies.Repositorios
         {
             return await _context.Generos.AnyAsync(x => x.Id == id);
         }
+        public async Task<bool> exists(int id, string nombre)
+        {
+            return await _context.Generos.AnyAsync(x => x.Id != id && x.Nombre == nombre);
+        }
 
         public async Task<Genero?> GetGenero(int id)
         {
